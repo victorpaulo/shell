@@ -1,0 +1,16 @@
+Tetris Game -- based on a shell script
+======================================
+
+#####################################################################
+#                                                                   #
+# License: GPLv3+                                                   #
+# Project: https://github.com/yongye/shell                          #
+# Author : YongYe <complex.invoke@gmail.com>                        #
+#                                                                   #
+#####################################################################
+
+Usage: bash Tetris_Game.sh [runlevel] [previewlevel] [speedlevel]
+Range: [ 0 =< runlevel <= 31 ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]
+Notice: runlevel previewlevel speedlevel belong to integer
+Platform : redhat-based distros(CentOS/rhel/Fedora)
+Bash Version must be 4.0 or above

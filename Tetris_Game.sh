@@ -6,7 +6,7 @@
 #   License: GPLv3+                                                                        #
 #   Project: https://github.com/yongye/shell                                               #
 #   Author : YongYe <complex.invoke@gmail.com>                                             #
-#   Version: 7.0 11/01/2011 BeiJing China [Updated 12/12/2012]                             #
+#   Version: 7.0 11/01/2011 BeiJing China [Updated 02/18/2013]                             #
 #                                                                                          #
 #                                                                         [][][]           #
 #   Algorithm:  [][][]                                                [][][][]             #
@@ -413,7 +413,7 @@ coor.dinate()
 get.optimize()
 {
    for j in dx dy; do
-       (( j )) && { [[ ${j} == dx ]] && k=i || k=i+1; ${1}; }
+       (( j )) && { [[ ${j} == dx ]] && k=i || k=i+1; add.box; }
    done
 }
 
@@ -429,7 +429,7 @@ per.plus()
    local i j k
    (( len == 2 )) && run.cross
    vbox=(${box[@]})
-   get.optimize add.box
+   get.optimize
    coor.dinate vbox[@]
    box=(${vbox[@]})
 }
@@ -469,12 +469,16 @@ per.multiple()
 
 run.unique()
 {
-   local i mid
+   local i mid vox
    declare -A mid
-   for((i=0; i!=${#log[@]}; i+=2)); do
-        mid[${log[i]}::${log[i+1]}]="${log[i]} ${log[i+1]}"
-   done
-   log=(${mid[@]})
+   for((i=0; i!=${#log[@]}; i+=2))
+   {
+        if (( ! mid[${log[i]}::${log[i+1]}]++ )); then
+             ((vox[${#vox[@]}]=log[i]))
+             ((vox[${#vox[@]}]=log[i+1]))
+        fi
+   }
+   log=(${vox[@]})
 }
 
 per.algorithm()
@@ -492,7 +496,7 @@ mid.plus()
    local i j k dx dy
    ((dx=mp-p))
    ((dy=nq-q))
-   get.optimize add.box
+   get.optimize
 }
 
 per.abstract()
@@ -591,13 +595,13 @@ show.instruction()
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
    printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 12/12/2012]\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 02/18/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]"
                  echo "Range: [ 0 =< runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.0 [Updated 12/12/2012]" ;;
+   -v|--version) echo "Tetris Game  Version 7.0 [Updated 02/18/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
                  show.boundary; show.instruction
                  show.piece 0; draw.piece 0

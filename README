@@ -3,7 +3,8 @@ Tetris Game -- based on a shell script
 
 #####################################################################
 #                                                                   #
-# License: GPLv3+                                                   #
+# License: Boost Ver 1.0+                                           #
+# Project: https://github.com/yongye/cpp                            #
 # Project: https://github.com/yongye/shell                          #
 # Author : YongYe <complex.invoke@gmail.com>                        #
 #                                                                   #

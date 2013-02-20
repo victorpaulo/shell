@@ -3,10 +3,11 @@
 
 ############################################################################################
 #                                                                                          #
-#   License: GPLv3+                                                                        #
+#   License: Boost Ver 1.0+                                                                #
+#   Project: https://github.com/yongye/cpp                                                 #
 #   Project: https://github.com/yongye/shell                                               #
 #   Author : YongYe <complex.invoke@gmail.com>                                             #
-#   Version: 7.0 11/01/2011 BeiJing China [Updated 02/18/2013]                             #
+#   Version: 7.0.1 11/01/2011 BeiJing China [Updated 02/20/2013]                           #
 #                                                                                          #
 #                                                                         [][][]           #
 #   Algorithm:  [][][]                                                [][][][]             #
@@ -69,22 +70,22 @@ BOX=(box{0..31}[@])
 ((prelevel=prelevel<1?6:prelevel))
 ((speedlevel=speedlevel>30?0:speedlevel))
 gmover="\e[?25h\e[36;26HGame Over!\e[0m\n"
-coltab=(1\;{30..38}\;{40..48}m {38,48}\;5\;{0..255}\;1m)
+color=(1\;{30..38}\;{40..48}m {38,48}\;5\;{0..255}\;1m)
 
-get.pause(){ kill -${1} ${pid}; }
-get.check(){ (( ! map[index] )) && k=1; }
-run.initi(){ ((map[index]=pam[index]=0)); }
+sig.trans(){ kill -${1} ${pid}; }
+get.check(){ (( ! box_map[index] )) && k=1; }
+run.initi(){ ((box_map[index]=box_color[index]=0)); }
 get.piece(){ box=(${!BOX[RANDOM%runlevel]}); }
-get.erase(){ printf "${oldpie//${unit}/  }\e[0m\n"; }
+get.erase(){ printf "${old_shadow//${unit}/  }\e[0m\n"; }
 get.resum(){ stty ${oldtty}; printf "\e[?25h\e[36;4H\n"; }
 get.stime(){ (( ${1} == ${2} )) && { ((++${3})); ((${1}=0)); }; }
-run.prbox(){ oldpie="${cdn}"; printf "\e[${colpie}${cdn}\e[0m\n"; }
 get.point(){ ((${1}=mid[${#mid[@]}/2])); ((${2}=mid[${#mid[@]}/2${3}1])); }
-run.compr(){ (( ${1} <= ${2} )) && { ((${5})); (( ${3} < ${4} )) && ((${6})); }; }
+cmp.coord(){ (( ${1} <= ${2} )) && { ((${5})); (( ${3} < ${4} )) && ((${6})); }; }
+run.prbox(){ old_shadow="${cur_shadow}"; printf "\e[${cur_color}${cur_shadow}\e[0m\n"; }
 run.level(){ lhs=${#BOX[@]}; rhs=${1:-$((lhs-1))}; ((runlevel=(rhs < 0 || rhs > lhs-1)?lhs:rhs+1)); }
-run.leave(){ (( ! ${#} )) && printf "${gmover}" || { (( ${#}%2 )) && get.pause 22; get.resum; }; exit; }
+run.leave(){ (( ! ${#} )) && printf "${gmover}" || { (( ${#}%2 )) && sig.trans 22; get.resum; }; exit; }
 
-lower.side()
+max.vertical.coordinate()
 {
    local i row col
    for((i=0; i!=${#box[@]}; i+=2)); do
@@ -97,7 +98,7 @@ lower.side()
 get.update()
 { 
    pos="\e[${i};${j}H"
-   (( ! map[index] )) && printf "${pos}  " || printf "${pos}\e[${pam[index]}${unit}\e[0m"
+   (( ! box_map[index] )) && printf "${pos}  " || printf "${pos}\e[${box_color[index]}${unit}\e[0m"
 }
 
 ini.loop()
@@ -118,117 +119,117 @@ map.piece()
    ((++line))
    for((j=i-1,u=6; j>=toph+1; u+=2)); do
         ((p=(j-toph)*width+u/2-toph)); ((q=p-width))
-        ((map[p]=map[q])); pam[p]="${pam[q]}"
+        ((box_map[p]=box_map[q])); box_color[p]="${box_color[q]}"
         (( u == l )) && { u=4; ((--j)); }
    done
    for((u=6; u<=l; u+=2)); do
-        ((map[u/2-toph]=0))
+        ((box_map[u/2-toph]=0))
    done
 }
 
 get.preview()
 {
-   local i vor clo
-   vor=(${!1})
-   for((i=0; i!=${#vor[@]}; i+=2)); do
-        ((clo=vor[i+1]-(${3}-dist)))
-        smobox+="\e[$((vor[i]-1));${clo}H${unit}"
+   local i cur_box col
+   cur_box=(${!1})
+   for((i=0; i!=${#cur_box[@]}; i+=2)); do
+        ((col=cur_box[i+1]-(${3}-dist)))
+        cur_preview_block+="\e[$((cur_box[i]-1));${col}H${unit}"
    done
-   printf "${!2//${unit}/  }\e[${!4}${smobox}\e[0m\n"
+   printf "${!2//${unit}/  }\e[${!4}${cur_preview_block}\e[0m\n"
 }
 
 pipe.piece()
 {
-   smobox=""
+   cur_preview_block=""
    (( ${5} )) && {
    get.piece
    eval ${1}="(${box[@]})"
-   colpie="${coltab[RANDOM%${#coltab[@]}]}"
-   eval ${6}=\"${colpie}\"
-   get.preview box[@] ${3} ${4} colpie
+   cur_color="${color[RANDOM%${#color[@]}]}"
+   eval ${6}=\"${cur_color}\"
+   get.preview box[@] ${3} ${4} cur_color
    } || {
    eval ${1}="(${!2})"
    eval ${6}=\"${!7}\"
    get.preview ${2} ${3} ${4} ${7}
    }
-   eval ${3}=\"${smobox}\"
+   eval ${3}=\"${cur_preview_block}\"
 }
 
 get.invoke()
 {
    local i arya aryb
    for((i=0; i!=prelevel-1; ++i)); do
-        arya=(rpvbox$((i+1)) rpvbox$((i+2))[@] pvbox$((i+1)))
-        aryb=($((12*(2-i))) ${1} s${arya[0]} srpvbox$((i+2))) 
+        arya=(next_preview_piece$((i+1)) next_preview_piece$((i+2))[@] old_preview_block$((i+1)))
+        aryb=($((12*(2-i))) ${1} next_preview_color$((i+1)) next_preview_color$((i+2))) 
         pipe.piece ${arya[@]} ${aryb[@]} 
    done
 }
 
 show.piece()
 {
-   local smobox 
-   colpie="${srpvbox1}"
-   olbox=(${rpvbox1[@]})
+   local cur_preview_block 
+   cur_color="${next_preview_color1}"
+   preview_box=(${next_preview_piece1[@]})
    get.invoke ${#}
-   smobox=""
+   cur_preview_block=""
    get.piece
-   eval rpvbox${prelevel}="(${box[@]})"
-   eval srpvbox${prelevel}=\"${coltab[RANDOM%${#coltab[@]}]}\"
-   get.preview box[@] crsbox $(((3-prelevel)*12)) srpvbox${prelevel}
-   crsbox="${smobox}"
-   box=(${olbox[@]})
+   eval next_preview_piece${prelevel}="(${box[@]})"
+   eval next_preview_color${prelevel}=\"${color[RANDOM%${#color[@]}]}\"
+   get.preview box[@] old_preview_block${prelevel} $(((3-prelevel)*12)) next_preview_color${prelevel}
+   eval old_preview_block${prelevel}=\"${cur_preview_block}\"
+   box=(${preview_box[@]})
 }
 
 draw.piece()
 {
    (( ${#} )) && {
       get.piece
-      colpie="${coltab[RANDOM%${#coltab[@]}]}"
+      cur_color="${color[RANDOM%${#color[@]}]}"
       coor.dinate box[@]
    } || {
-   colpie="${srpvbox1}"
-   coor.dinate rpvbox1[@]
+   cur_color="${next_preview_color1}"
+   coor.dinate next_preview_piece1[@]
    }
    run.prbox 
    if ! move.piece; then
         kill -22 ${PPID}
-        get.pause 22
+        sig.trans 22
         run.leave
    fi
 }
 
-run.bmob()
+top.point()
 {
    local i x y u v 
-   ((u=vor[0]))
-   ((v=vor[1]))
-   for((i=0; i!=${#vor[@]}; i+=2)); do
-        run.compr x vor[i] y vor[i+1] x=vor[i] y=vor[i+1]   
-        run.compr vor[i] u vor[i+1] v u=vor[i] v=vor[i+1]
+   ((u=cur_box[0]))
+   ((v=cur_box[1]))
+   for((i=0; i!=${#cur_box[@]}; i+=2)); do
+        cmp.coord x cur_box[i] y cur_box[i+1] x=cur_box[i] y=cur_box[i+1]   
+        cmp.coord cur_box[i] u cur_box[i+1] v u=cur_box[i] v=cur_box[i+1]
    done
    if (( x-u == 3 && y-v == 6 )); then
-         vor=($((x-3)) $((y-6)) $((x-3)) ${y} ${x} $((y-6)) ${x} ${y})
+         cur_box=($((x-3)) $((y-6)) $((x-3)) ${y} ${x} $((y-6)) ${x} ${y})
    fi
 }
 
 run.bomb()
 {
-   local j p q bom scn sbos index boolp boolq
+   local j p q radius empty sbos index boolp boolq
    sbos="\040\040"
-   bom=(x-1 y-2 x-1 y x-1 y+2 x y-2 x y x y+2 x+1 y-2 x+1 y x+1 y+2)
-   for((j=0; j!=${#bom[@]}; j+=2)); do
-        ((p=bom[j]))
-        ((q=bom[j+1]))
+   radius=(x-1 y-2 x-1 y x-1 y+2 x y-2 x y x y+2 x+1 y-2 x+1 y x+1 y+2)
+   for((j=0; j!=${#radius[@]}; j+=2)); do
+        ((p=radius[j]))
+        ((q=radius[j+1]))
         ((index=(p-4)*width+q/2-toph))
         boolp="p > toph && p <= lower"
         boolq="q <= wthm && q > modw"
         if (( boolp && boolq )); then
-              (( ! map[index] && p+q != x+y && ${1} != 8 )) && continue
-              scn+="\e[${p};${q}H${sbos}"
+              (( ! box_map[index] && p+q != x+y && ${1} != 8 )) && continue
+              empty+="\e[${p};${q}H${sbos}"
               run.initi 
         fi
    done
-   sleep 0.03; printf "${scn}\n"
+   sleep 0.03; printf "${empty}\n"
 } 
 
 random.piece()
@@ -238,24 +239,24 @@ random.piece()
    for((i=0,j=6; i!=count; j+=2)); do
         ((k=(29-i)*25+j/2-3))
         (( j == 54 )) && { j=4; ((++i)); }
-        (( RANDOM%2 )) && { map[k]=1; pam[k]="${coltab[RANDOM%${#coltab[@]}]}"; }
+        (( RANDOM%2 )) && { box_map[k]=1; box_color[k]="${color[RANDOM%${#color[@]}]}"; }
    done
    (( count == 29 )) && count=0
 }
 
 del.row()
 {
-   local i x y len num vor index line
-   vor=(${locus[@]})
-   len=${#vor[@]}
-   (( len == 16 )) && run.bmob
-   for((i=0; i!=${#vor[@]}; i+=2)); do
-        ((x=vor[i]))
-        ((y=vor[i+1]))
-        (( len == 16 )) && run.bomb ${#vor[@]} || {
+   local i x y len num cur_box index line
+   cur_box=(${locus[@]})
+   len=${#cur_box[@]}
+   (( len == 16 )) && top.point
+   for((i=0; i!=${#cur_box[@]}; i+=2)); do
+        ((x=cur_box[i]))
+        ((y=cur_box[i+1]))
+        (( len == 16 )) && run.bomb ${#cur_box[@]} || {
            ((index=(x-4)*width+y/2-toph))
-           ((map[index]=1))
-           pam[index]="${colpie}"
+           ((box_map[index]=1))
+           box_color[index]="${cur_color}"
         }
    done
    line=0
@@ -272,12 +273,12 @@ del.row()
 
 get.ctime()
 {
-   local i d h m s vir Time color
+   local i d h m s line Time color
    trap "run.leave" 22 
    ((d=0, h=0, m=0, s=0))
-   vir=----------------
+   line=----------------
    color="\e[1;33m"
-   printf "\e[2;6H${color}${vir}[\e[2;39H${color}]${vir}\e[0m\n"
+   printf "\e[2;6H${color}${line}[\e[2;39H${color}]${line}\e[0m\n"
    while :; do
          sleep 1 &
          get.stime s 60 m
@@ -298,7 +299,7 @@ per.sig()
    for i in {23..31}; do
        trap "sig=${i}" ${i}
    done
-   trap "get.pause 22; run.leave" 22
+   trap "sig.trans 22; run.leave" 22
    while (( ++j )); do 
          (( j != 1 )) && sleep 0.02
          sigswap=${sig}
@@ -312,7 +313,7 @@ per.sig()
          28)  per.transform    0              2   ;;
          29)  per.transform    1              0   ;;
          30)  per.transform   -1              0   ;;
-         31)  per.transform    $(run.bottom)  0   ;;
+         31)  per.transform    $(drop.bottom) 0   ;;
          esac
          (( j == 31-speedlevel )) && { per.transform  1  0; j=0; }
    done
@@ -320,17 +321,17 @@ per.sig()
 
 get.sig()
 {
-   local sig pid key arry pool oldtty
+   local sig pid key arry escape oldtty
    printf "\e[?25l"
    pid=${1}; arry=(0 0 0)
-   pool="$(printf "\e")"; oldtty="$(stty -g)"
+   escape="$(printf "\e")"; oldtty="$(stty -g)"
    trap "run.leave 0" INT TERM; trap "run.leave 0 0" 22
    while read -s -n 1 key; do
          arry[0]=${arry[1]}; arry[1]=${arry[2]}
          arry[2]=${key}; sig=0
          if   [[ ! "${key}" ]]; then sig=31      
-         elif [[ "${key}${arry[1]}" == "${pool}${pool}" ]]; then run.leave 0
-         elif [[ "${arry[0]}" == "${pool}" && "${arry[1]}" == "[" ]]; then
+         elif [[ "${key}${arry[1]}" == "${escape}${escape}" ]]; then run.leave 0
+         elif [[ "${arry[0]}" == "${escape}" && "${arry[1]}" == "[" ]]; then
                  case ${key} in
                  A)    sig=23         ;;
                  B)    sig=29         ;;
@@ -347,22 +348,22 @@ get.sig()
                  A|a)  sig=27         ;;
                  D|d)  sig=28         ;; 
                  U|u)  sig=30         ;; 
-                 P|p)  get.pause  19  ;;
-                 R|r)  get.pause  18  ;;
+                 P|p)  sig.trans  19  ;;
+                 R|r)  sig.trans  18  ;;
                  Q|q)  run.leave   0  ;;
                  esac
          fi
-                 (( sig != 0 )) && get.pause ${sig}
+                 (( sig != 0 )) && sig.trans ${sig}
    done
 }
 
-run.bottom()
+drop.bottom()
 {  
    local i j max col row 
-   lower.side
+   max.vertical.coordinate
    for((i=0,j=0; i!=height; j+=2)); do
         row="max[j]+i == lower"
-        col="map[(max[j]+i-toph)*width+max[j+1]/2-toph]"
+        col="box_map[(max[j]+i-toph)*width+max[j+1]/2-toph]"
         (( col || row )) && { echo ${i}; return; }
         (( j+2 == ${#max[@]} )) && { j=-2; ((++i)); }
    done
@@ -380,10 +381,10 @@ move.piece()
         boolx="x <= toph || x > lower"
         booly="y > wthm || y <= modw"
         (( boolx || booly )) && return 1
-        if (( map[index] )); then
+        if (( box_map[index] )); then
               if (( len == 2 )); then
                     for((j=lower; j>x; --j)); do
-                         (( ! map[(j-4)*width+y/2-toph] )) && return 0
+                         (( ! box_map[(j-4)*width+y/2-toph] )) && return 0
                     done
               fi
               return 1
@@ -392,13 +393,13 @@ move.piece()
    return 0  
 }
 
-run.cross()
+ghost.cross()
 {
    local i j index
    ((i=locus[0]))
    ((j=locus[1]))
    ((index=(i-4)*width+j/2-toph))
-   (( map[index] )) && printf "\e[${i};${j}H\e[${pam[index]}${unit}\e[0m\n"
+   (( box_map[index] )) && printf "\e[${i};${j}H\e[${box_color[index]}${unit}\e[0m\n"
 }
 
 coor.dinate()
@@ -406,7 +407,7 @@ coor.dinate()
    local i
    locus=(${!1})
    for((i=0; i!=${#locus[@]}; i+=2)); do    
-        cdn+="\e[${locus[i]};${locus[i+1]}H${unit}"
+        cur_shadow+="\e[${locus[i]};${locus[i+1]}H${unit}"
    done
 }
 
@@ -419,19 +420,19 @@ get.optimize()
 
 add.box()
 {
-   for((i=0; i!=${#vbox[@]}; i+=2)); do
-        ((vbox[k]+=j))
+   for((i=0; i!=${#new_box[@]}; i+=2)); do
+        ((new_box[k]+=j))
    done
 }
 
 per.plus()
 {
    local i j k
-   (( len == 2 )) && run.cross
-   vbox=(${box[@]})
+   (( len == 2 )) && ghost.cross
+   new_box=(${box[@]})
    get.optimize
-   coor.dinate vbox[@]
-   box=(${vbox[@]})
+   coor.dinate new_box[@]
+   box=(${new_box[@]})
 }
 
 get.move()
@@ -458,36 +459,36 @@ mid.point()
 
 per.multiple()
 {
-   local i mid vor
+   local i mid cur_box
    mid=(${!1})
-   vor=(${!1})
+   cur_box=(${!1})
    for((i=0; i!=${#mid[@]}-2; i+=2)); do
-        ((mid[i+3]=mid[i+1]+(vor[i+3]-vor[i+1])${2}2))
+        ((mid[i+3]=mid[i+1]+(cur_box[i+3]-cur_box[i+1])${2}2))
    done
-   vbox=(${mid[@]})
+   new_box=(${mid[@]})
 }
 
 run.unique()
 {
-   local i mid vox
+   local i mid first_coordinate
    declare -A mid
-   for((i=0; i!=${#log[@]}; i+=2))
+   for((i=0; i!=${#new_coordinate[@]}; i+=2))
    {
-        if (( ! mid[${log[i]}::${log[i+1]}]++ )); then
-             ((vox[${#vox[@]}]=log[i]))
-             ((vox[${#vox[@]}]=log[i+1]))
+        if (( ! mid[${new_coordinate[i]}::${new_coordinate[i+1]}]++ )); then
+             ((first_coordinate[${#first_coordinate[@]}]=new_coordinate[i]))
+             ((first_coordinate[${#first_coordinate[@]}]=new_coordinate[i+1]))
         fi
    }
-   log=(${vox[@]})
+   new_coordinate=(${first_coordinate[@]})
 }
 
-per.algorithm()
+coordinate.transformation()
 {
-   local i                               # row=(x-m)*zoomx*cos(a)-(y-n)*zoomy*sin(a)+m
-   for((i=0; i!=${#vbox[@]}; i+=2)); do  # col=(x-m)*zoomx*sin(a)+(y-n)*zoomy*cos(a)+n
-        ((log[i]=m+vbox[i+1]-n))         # a=-pi/2 zoomx=+1 zoomy=+1 dx=0 dy=0
-        ((log[i+1]=(vbox[i]-m)*${dx}+n)) # a=-pi/2 zoomx=-1 zoomy=+1 dx=0 dy=0 
-   done                                  # a=+pi/2 zoomx=+1 zoomy=-1 dx=0 dy=0
+   local i                                             # row=(x-m)*zoomx*cos(a)-(y-n)*zoomy*sin(a)+m
+   for((i=0; i!=${#new_box[@]}; i+=2)); do             # col=(x-m)*zoomx*sin(a)+(y-n)*zoomy*cos(a)+n
+        ((new_coordinate[i]=m+new_box[i+1]-n))         # a=-pi/2 zoomx=+1 zoomy=+1 dx=0 dy=0
+        ((new_coordinate[i+1]=(new_box[i]-m)*${dx}+n)) # a=-pi/2 zoomx=-1 zoomy=+1 dx=0 dy=0 
+   done                                                # a=+pi/2 zoomx=+1 zoomy=-1 dx=0 dy=0
    [[ ${dx} == 1/2 ]] && run.unique 
 }
 
@@ -502,20 +503,20 @@ mid.plus()
 per.abstract()
 {
    per.multiple ${1} "${2}"
-   mid.point vbox[@] ${3} ${4} 
+   mid.point new_box[@] ${3} ${4} 
 }
 
 per.rotate()
 {     
-   local m n p q mp nq log
+   local m n p q mp nq new_coordinate
    (( arg == 2 )) && return
    mid.point box[@] mp nq 
    per.abstract box[@] "/" m n
-   per.algorithm; dx=0
-   per.abstract log[@] "*" p q
-   mid.plus; locus=(${vbox[@]})
+   coordinate.transformation; dx=0
+   per.abstract new_coordinate[@] "*" p q
+   mid.plus; locus=(${new_box[@]})
    if move.piece; then
-       get.erase; coor.dinate vbox[@]
+       get.erase; coor.dinate new_box[@]
        run.prbox; box=(${locus[@]})
    else
        locus=(${box[@]})
@@ -524,7 +525,7 @@ per.rotate()
 
 per.transform()
 { 
-   local dx dy cdn len arg vbox 
+   local dx dy cur_shadow len arg new_box 
    dx=${1}
    dy=${2}
    arg=${#}
@@ -573,16 +574,16 @@ show.boundary()
 {
    clear
    boucol="\e[38;5"
-   ((color=RANDOM%145+6))
+   ((colour=RANDOM%145+6))
    for((i=6; i<=wthm; i+=2)); do
-        printf "${boucol};$((color+i));1m\e[${toph};${i}H==${boucol};$((color+i+25));1m\e[$((lower+1));${i}H==\e[0m\n"
+        printf "${boucol};$((colour+i));1m\e[${toph};${i}H==${boucol};$((colour+i+25));1m\e[$((lower+1));${i}H==\e[0m\n"
    done
    for((i=toph; i<=lower+1; ++i)); do
-        printf "${boucol};$((color+i));1m\e[${i};$((modw-1))H||${boucol};$((color+i+30));1m\e[${i};$((wthm+1))H||\e[0m\n"
+        printf "${boucol};$((colour+i));1m\e[${i};$((modw-1))H||${boucol};$((colour+i+30));1m\e[${i};$((wthm+1))H||\e[0m\n"
    done
 }
 
-show.instruction()
+show.notify()
 {
    printf "\e[1;31m\e[$((toph+9));${dist}HRunLevel\e[1;31m\e[$((toph+9));$((dist+15))HPreviewLevel\e[0m\n"
    printf "\e[1;31m\e[$((toph+9));$((dist+30))HSpeedLevel\e[1;31m\e[$((toph+9));$((dist+49))HScoreLevel\e[0m\n"
@@ -594,16 +595,16 @@ show.instruction()
    printf "\e[$((toph+15));${dist}HR|r      ===   resume         A|a|left     ===   one step left\n"
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
-   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 02/18/2013]\n"
+   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.1\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 02/20/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]"
                  echo "Range: [ 0 =< runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.0 [Updated 02/18/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.0.1 [Updated 02/20/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
-                 show.boundary; show.instruction
+                 show.boundary; show.notify
                  show.piece 0; draw.piece 0
                  show.matrix; get.ctime &
                  per.sig ${!} ;;

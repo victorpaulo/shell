@@ -10,8 +10,11 @@ Tetris Game -- based on a shell script
 #                                                                   #
 #####################################################################
 
-Usage: bash Tetris_Game.sh [runlevel] [previewlevel] [speedlevel]
-Range: [ 0 =< runlevel <= 31 ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]
-Notice: runlevel previewlevel speedlevel belong to integer
-Platform : redhat-based distros(CentOS/rhel/Fedora)
-Bash Version must be 4.0 or above
+Tetris_Game.sh              :  Matrix-based implementation for box_map and box_color
+Tetris_Game_Vector_Based.sh :  Vector-based implementation for box_map and box_color
+
+Usage    :  bash Tetris_Game.sh [runlevel] [previewlevel] [speedlevel]
+Range    :  [ 0 =< runlevel <= 31 ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]
+Notice   :  runlevel previewlevel speedlevel belong to integer
+Platform :  redhat-based distros(CentOS/rhel/Fedora)
+Version  :  Bash Shell must be 4.0 or above

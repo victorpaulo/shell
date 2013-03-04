@@ -7,7 +7,7 @@
 #   Project: https://github.com/yongye/cpp                                                 #
 #   Project: https://github.com/yongye/shell                                               #
 #   Author : YongYe <complex.invoke@gmail.com>                                             #
-#   Version: 7.0.1 11/01/2011 BeiJing China [Updated 02/20/2013]                           #
+#   Version: 7.0.2 11/01/2011 BeiJing China [Updated 03/04/2013]                           #
 #                                                                                          #
 #                                                                         [][][]           #
 #   Algorithm:  [][][]                                                [][][][]             #
@@ -73,13 +73,13 @@ gmover="\e[?25h\e[36;26HGame Over!\e[0m\n"
 color=(1\;{30..38}\;{40..48}m {38,48}\;5\;{0..255}\;1m)
 
 sig.trans(){ kill -${1} ${pid}; }
-get.check(){ (( ! box_map[index] )) && k=1; }
-run.initi(){ ((box_map[index]=box_color[index]=0)); }
 get.piece(){ box=(${!BOX[RANDOM%runlevel]}); }
+get.check(){ (( ! box_map$((i-4))[j/2-3] )) && k=1; }
 get.erase(){ printf "${old_shadow//${unit}/  }\e[0m\n"; }
 get.resum(){ stty ${oldtty}; printf "\e[?25h\e[36;4H\n"; }
 get.stime(){ (( ${1} == ${2} )) && { ((++${3})); ((${1}=0)); }; }
 get.point(){ ((${1}=mid[${#mid[@]}/2])); ((${2}=mid[${#mid[@]}/2${3}1])); }
+run.initi(){ eval box_map$((i-4))[j/2-3]=0; eval box_color$((i-4))[j/2-3]=""; }
 cmp.coord(){ (( ${1} <= ${2} )) && { ((${5})); (( ${3} < ${4} )) && ((${6})); }; }
 run.prbox(){ old_shadow="${cur_shadow}"; printf "\e[${cur_color}${cur_shadow}\e[0m\n"; }
 run.level(){ lhs=${#BOX[@]}; rhs=${1:-$((lhs-1))}; ((runlevel=(rhs < 0 || rhs > lhs-1)?lhs:rhs+1)); }
@@ -98,14 +98,19 @@ max.vertical.coordinate()
 get.update()
 { 
    pos="\e[${i};${j}H"
-   (( ! box_map[index] )) && printf "${pos}  " || printf "${pos}\e[${box_color[index]}${unit}\e[0m"
+   if (( ! box_map$((i-4))[j/2-3] )); then
+         printf "${pos}  "
+   else
+         eval str="\${box_color$((i-4))[j/2-3]}"
+         printf "${pos}\e[${str}${unit}\e[0m"
+   fi
 }
 
 ini.loop()
 {
-   local i j k l index
+   local i j k l
    for((i=4,j=6,l=54; i<=lower; j+=2)); do
-        k=0; ((index=(i-4)*width+j/2-toph)); ${1}
+        k=0; ${1}
         if (( k || j == l )); then
               (( ! k )) && ${2}
               j=4; ((++i))
@@ -115,15 +120,16 @@ ini.loop()
 
 map.piece()
 {
-   local j u p q 
+   local j u 
    ((++line))
-   for((j=i-1,u=6; j>=toph+1; u+=2)); do
-        ((p=(j-toph)*width+u/2-toph)); ((q=p-width))
-        ((box_map[p]=box_map[q])); box_color[p]="${box_color[q]}"
+   for((j=i,u=6; j>toph+1; u+=2)); do
+        eval box_map$((j-4))[u/2-toph]="\${box_map$((j-5))[u/2-toph]}"
+        eval box_color$((j-4))[u/2-toph]="\${box_color$((j-5))[u/2-toph]}"
         (( u == l )) && { u=4; ((--j)); }
    done
    for((u=6; u<=l; u+=2)); do
-        ((box_map[u/2-toph]=0))
+        ((box_map0[u/2-toph]=0))
+        eval box_color0[u/2-toph]=""
    done
 }
 
@@ -159,24 +165,25 @@ get.invoke()
 {
    local i arya aryb
    for((i=0; i!=prelevel-1; ++i)); do
-        arya=(next_preview_piece$((i+1)) next_preview_piece$((i+2))[@] old_preview_block$((i+1)))
-        aryb=($((12*(2-i))) ${1} next_preview_color$((i+1)) next_preview_color$((i+2))) 
+        arya=(next_preview_piece${i} next_preview_piece$((i+1))[@] old_preview_block${i})
+        aryb=($((12*(2-i))) ${1} next_preview_color${i} next_preview_color$((i+1))) 
         pipe.piece ${arya[@]} ${aryb[@]} 
    done
 }
 
 show.piece()
 {
-   local cur_preview_block 
-   cur_color="${next_preview_color1}"
-   preview_box=(${next_preview_piece1[@]})
+   local end cur_preview_block
+   ((end=prelevel-1)) 
+   cur_color="${next_preview_color0}"
+   preview_box=(${next_preview_piece0[@]})
    get.invoke ${#}
    cur_preview_block=""
    get.piece
-   eval next_preview_piece${prelevel}="(${box[@]})"
-   eval next_preview_color${prelevel}=\"${color[RANDOM%${#color[@]}]}\"
-   get.preview box[@] old_preview_block${prelevel} $(((3-prelevel)*12)) next_preview_color${prelevel}
-   eval old_preview_block${prelevel}=\"${cur_preview_block}\"
+   eval next_preview_piece${end}="(${box[@]})"
+   eval next_preview_color${end}=\"${color[RANDOM%${#color[@]}]}\"
+   get.preview box[@] old_preview_block${end} $((12*(2-end))) next_preview_color${end}
+   eval old_preview_block${end}=\"${cur_preview_block}\"
    box=(${preview_box[@]})
 }
 
@@ -187,8 +194,8 @@ draw.piece()
       cur_color="${color[RANDOM%${#color[@]}]}"
       coor.dinate box[@]
    } || {
-   cur_color="${next_preview_color1}"
-   coor.dinate next_preview_piece1[@]
+   cur_color="${next_preview_color0}"
+   coor.dinate next_preview_piece0[@]
    }
    run.prbox 
    if ! move.piece; then
@@ -214,19 +221,19 @@ top.point()
 
 run.bomb()
 {
-   local j p q radius empty sbos index boolp boolq
+   local j p q radius empty sbos boolp boolq
    sbos="\040\040"
    radius=(x-1 y-2 x-1 y x-1 y+2 x y-2 x y x y+2 x+1 y-2 x+1 y x+1 y+2)
    for((j=0; j!=${#radius[@]}; j+=2)); do
         ((p=radius[j]))
         ((q=radius[j+1]))
-        ((index=(p-4)*width+q/2-toph))
         boolp="p > toph && p <= lower"
         boolq="q <= wthm && q > modw"
         if (( boolp && boolq )); then
-              (( ! box_map[index] && p+q != x+y && ${1} != 8 )) && continue
+              (( ! box_map$((p-4))[q/2-3] && p+q != x+y && ${1} != 8 )) && continue
               empty+="\e[${p};${q}H${sbos}"
-              run.initi 
+              eval box_map$((p-4))[q/2-3]=0 
+              eval box_color$((p-4))[q/2-3]=""
         fi
    done
    sleep 0.03; printf "${empty}\n"
@@ -234,19 +241,21 @@ run.bomb()
 
 random.piece()
 {
-   local i j k 
+   local i j
    ((++count))
    for((i=0,j=6; i!=count; j+=2)); do
-        ((k=(29-i)*25+j/2-3))
         (( j == 54 )) && { j=4; ((++i)); }
-        (( RANDOM%2 )) && { box_map[k]=1; box_color[k]="${color[RANDOM%${#color[@]}]}"; }
+        (( RANDOM%2 )) && { 
+           eval box_map$((33-i))[j/2-3]=1 
+           eval box_color$((33-i))[j/2-3]=\"${color[RANDOM%${#color[@]}]}\"
+        }
    done
    (( count == 29 )) && count=0
 }
 
 del.row()
 {
-   local i x y len num cur_box index line
+   local i x y len num cur_box line
    cur_box=(${locus[@]})
    len=${#cur_box[@]}
    (( len == 16 )) && top.point
@@ -254,9 +263,8 @@ del.row()
         ((x=cur_box[i]))
         ((y=cur_box[i+1]))
         (( len == 16 )) && run.bomb ${#cur_box[@]} || {
-           ((index=(x-4)*width+y/2-toph))
-           ((box_map[index]=1))
-           box_color[index]="${cur_color}"
+           eval box_map$((x-4))[y/2-3]=1
+           eval box_color$((x-4))[y/2-3]=\"${cur_color}\"
         }
    done
    line=0
@@ -359,12 +367,11 @@ get.sig()
 
 drop.bottom()
 {  
-   local i j max col row 
+   local i j max
    max.vertical.coordinate
    for((i=0,j=0; i!=height; j+=2)); do
-        row="max[j]+i == lower"
-        col="box_map[(max[j]+i-toph)*width+max[j+1]/2-toph]"
-        (( col || row )) && { echo ${i}; return; }
+        (( box_map$((max[j]+i-4))[max[j+1]/2-toph] == 1 )) && { echo $((i-1)); return; }
+        (( max[j]+i == lower )) && { echo ${i}; return; }
         (( j+2 == ${#max[@]} )) && { j=-2; ((++i)); }
    done
 }
@@ -381,10 +388,10 @@ move.piece()
         boolx="x <= toph || x > lower"
         booly="y > wthm || y <= modw"
         (( boolx || booly )) && return 1
-        if (( box_map[index] )); then
+        if (( box_map$((x-4))[y/2-3] )); then
               if (( len == 2 )); then
                     for((j=lower; j>x; --j)); do
-                         (( ! box_map[(j-4)*width+y/2-toph] )) && return 0
+                         (( ! box_map$((j-4))[y/2-toph] )) && return 0
                     done
               fi
               return 1
@@ -395,11 +402,11 @@ move.piece()
 
 ghost.cross()
 {
-   local i j index
+   local i j str
    ((i=locus[0]))
    ((j=locus[1]))
-   ((index=(i-4)*width+j/2-toph))
-   (( box_map[index] )) && printf "\e[${i};${j}H\e[${box_color[index]}${unit}\e[0m\n"
+   eval str="\${box_color$((i-4))[j/2-toph]}"
+   (( box_map$((i-4))[j/2-toph] )) && printf "\e[${i};${j}H\e[${str}${unit}\e[0m\n"
 }
 
 coor.dinate()
@@ -570,7 +577,7 @@ show.matrix()
    printf "\e[$((toph+27));${dist}H${fk0}${cps}${fk0}${fk9}${fk0}${fk10}\e[$((toph+31));${dist}H${spc}${two}${fk2}${fk5}${fk5} ${fk2}\n"
 }
 
-show.boundary()
+show.board()
 {
    clear
    boucol="\e[38;5"
@@ -595,16 +602,16 @@ show.notify()
    printf "\e[$((toph+15));${dist}HR|r      ===   resume         A|a|left     ===   one step left\n"
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
-   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.1\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 02/20/2013]\n"
+   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.2\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 03/04/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]"
                  echo "Range: [ 0 =< runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.0.1 [Updated 02/20/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.0.2 [Updated 03/04/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
-                 show.boundary; show.notify
+                 show.board; show.notify
                  show.piece 0; draw.piece 0
                  show.matrix; get.ctime &
                  per.sig ${!} ;;

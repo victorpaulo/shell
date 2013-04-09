@@ -7,7 +7,7 @@
 #   Project: https://github.com/yongye/cpp                                                 #
 #   Project: https://github.com/yongye/shell                                               #
 #   Author : YongYe <complex.invoke@gmail.com>                                             #
-#   Version: 7.0.3 11/01/2011 BeiJing China [Updated 03/13/2013]                           #
+#   Version: 7.0.4 11/01/2011 BeiJing China [Updated 04/09/2013]                           #
 #                                                                                          #
 #                                                                         [][][]           #
 #   Algorithm:  [][][]                                                [][][][]             #
@@ -76,20 +76,20 @@ color=(1\;{30..38}\;{40..48}m {38,48}\;5\;{0..255}\;1m)
 
 sig.trans(){ kill -${1} ${pid}; }
 get.piece(){ box=(${!BOX[RANDOM%runlevel]}); }
-get.check(){ (( ! box_map$((i-modw))[j/2-toph] )) && k=1; }
 get.erase(){ printf "${old_shadow//${unit}/  }\e[0m\n"; }
 get.resum(){ stty ${oldtty}; printf "\e[?25h\e[36;4H\n"; }
+get.check(){ (( ! box_map$((i-modw))[j/2-toph] )) && k=1; }
 get.stime(){ (( ${1} == ${2} )) && { ((++${3})); ((${1}=0)); }; }
 get.point(){ ((${1}=mid[${#mid[@]}/2])); ((${2}=mid[${#mid[@]}/2${3}1])); }
-run.initi(){ eval box_map$((i-modw))[j/2-toph]=0; eval box_color$((i-modw))[j/2-toph]=""; }
 cmp.coord(){ (( ${1} <= ${2} )) && { ((${5})); (( ${3} < ${4} )) && ((${6})); }; }
 run.prbox(){ old_shadow="${cur_shadow}"; printf "\e[${cur_color}${cur_shadow}\e[0m\n"; }
+run.initi(){ eval box_map$((i-modw))[j/2-toph]=0; eval box_color$((i-modw))[j/2-toph]=""; }
 run.level(){ lhs=${#BOX[@]}; rhs=${1:-$((lhs-1))}; ((runlevel=(rhs < 0 || rhs > lhs-1)?lhs:rhs+1)); }
 run.leave(){ (( ! ${#} )) && printf "${gmover}" || { (( ${#}%2 )) && sig.trans 22; get.resum; }; exit; }
 
 max.vertical.coordinate()
 {
-   local i row col
+   local i col row
    for((i=0; i!=${#box[@]}; i+=2)); do
       (( col[box[i+1]] < box[i] )) && ((col[box[i+1]]=box[i]))
          row[box[i+1]]="${col[box[i+1]]} ${box[i+1]}"
@@ -137,7 +137,7 @@ map.piece()
 
 get.preview()
 {
-   local i cur_box col
+   local i col cur_box
    cur_box=(${!1})
    for((i=0; i!=${#cur_box[@]}; i+=2)); do
         ((col=cur_box[i+1]-(${3}-dist)))
@@ -209,7 +209,7 @@ draw.piece()
 
 top.point()
 {
-   local i x y u v 
+   local i u v x y
    ((u=cur_box[0]))
    ((v=cur_box[1]))
    for((i=0; i!=${#cur_box[@]}; i+=2)); do
@@ -223,8 +223,7 @@ top.point()
 
 run.bomb()
 {
-   local j p q radius empty sbos boolp boolq
-   sbos="\040\040"
+   local j p q boolp boolq empty radius
    radius=(x-1 y-2 x-1 y x-1 y+2 x y-2 x y x y+2 x+1 y-2 x+1 y x+1 y+2)
    for((j=0; j!=${#radius[@]}; j+=2)); do
         ((p=radius[j]))
@@ -233,7 +232,7 @@ run.bomb()
         ((boolq=(q <= wthm && q > modw+1)))
         if (( boolp && boolq )); then
               (( ! box_map$((p-modw))[q/2-toph] && p+q != x+y && ${1} != 8 )) && continue
-              empty+="\e[${p};${q}H${sbos}"
+              empty+="\e[${p};${q}H\040\040"
               eval box_map$((p-modw))[q/2-toph]=0 
               eval box_color$((p-modw))[q/2-toph]=""
         fi
@@ -258,7 +257,7 @@ random.piece()
 
 del.row()
 {
-   local i x y len num cur_box line
+   local i x y len num line cur_box
    cur_box=(${locus[@]})
    len=${#cur_box[@]}
    (( len == 16 )) && top.point
@@ -333,7 +332,7 @@ per.sig()
 
 get.sig()
 {
-   local sig pid key arry escape oldtty
+   local key pid sig arry escape oldtty
    printf "\e[?25l"
    pid=${1}; arry=(0 0 0)
    escape="$(printf "\e")"; oldtty="$(stty -g)"
@@ -382,7 +381,7 @@ drop.bottom()
 
 move.piece()
 {
-   local i j x y index boolx booly 
+   local i j x y boolx booly index
    len=${#locus[@]}
    for((i=0; i!=len; i+=2)); do    
         ((x=locus[i]+dx)) 
@@ -536,7 +535,7 @@ per.rotate()
 
 per.transform()
 { 
-   local dx dy cur_shadow len arg new_box 
+   local dx dy arg len new_box cur_shadow 
    dx=${1}
    dy=${2}
    arg=${#}
@@ -546,39 +545,39 @@ per.transform()
 show.matrix()
 {
    one=" "
-   sr="\e[0m"
-   trx="[][]"
+   end="\e[0m"
+   block="[][]"
    two="${one}${one}"
-   tre="${one}${two}"
-   cps="${two}${tre}"
-   spc="${cps}${cps}"         
+   cube="${one}${two}"
+   five="${two}${cube}"
+   ten="${five}${five}"         
    equ="\e[38;5;191;1m"
    colbon="\e[38;5;47;1m"
    mcol="\e[38;5;30;1m"
-   fk5="${spc}${spc}"
-   fk4="${mcol}[]${sr}"
-   fk0="${colbon}[]${sr}"
-   fk1="${colbon}${trx}${sr}"
-   fk6="${mcol}[]${trx}${sr}"
-   fk2="${colbon}[]${trx}${sr}"
-   fk3="${colbon}${trx}${trx}${sr}"
-   fk="${tre}${fk0}${two}${fk3}${two}${fk3}"
-   fk7="${fk1}${one}${fk1}${fk}${fk4}${two}${two}"
-   fk8="${fk0}${one}${equ}row${one}${fk0}${tre}${fk0}${two}${fk0}${one}${equ}(x-m)*zoomx${two}"
-   fk9="${one}${equ}=${one}${fk0}${two}${fk0}${spc}${tre}${one}${fk0}${tre}${equ}*${two}"
-   fk10="${spc}${cps}${two}${fk0}${two}${fk0}${one}${equ}+${one}${fk0}${cps}${fk0}"
-   fk11="${tre}${one}${fk0}${two}${equ}cos(a)${one}${equ}sin(a)${two}${fk0}${two}${fk0}${tre}${fk0}${two}${equ}m${two}${fk0}"
-   fk12="${one}${equ}col${one}${fk0}${tre}${fk0}${two}${fk0}${one}${equ}(y-n)*zoomy${two}${fk0}${cps}${one}"
-   fk13="${one}${equ}-sin(a)${one}${equ}cos(a)${two}${fk0}${two}${fk0}${tre}${fk0}${two}${equ}n${two}${fk0}"
-   fk14="${fk1}${one}${fk1}${fk}${cps}${one}"
-   fk15="${fk1}${two}${fk0}${tre}${fk1}${one}${fk1}"
-   printf "\e[$((toph+23));${dist}H${colbon}Algorithm:${two}${fk2}${one}${fk5}${fk5}${fk2}${fk4}\n"
-   printf "\e[$((toph+30));${dist}H${spc}${two}${fk0}${two}${two}${cps}${fk5}${fk5}${fk0}\n"
-   printf "\e[$((toph+25));${dist}H${fk7}${fk1}${spc}${tre}${fk1}${two}${fk0}${tre}${fk1}${one}${fk1}\n"
-   printf "\e[$((toph+26));${dist}H${fk8}${fk0}${fk4}${fk11}\e[$((toph+28));${dist}H${fk0}${fk12}${fk0}${fk13}\n"
-   printf "\e[$((toph+24));${dist}H${two}${spc}${fk0}${spc}${tre}${two}${tre}${fk6}${fk5}${cps}${fk0}${fk4}\n"
-   printf "\e[$((toph+22));${dist}H${tre}${fk5}${fk5}${fk5}${fk6}\e[$((toph+29));${dist}H${fk14}${fk1}${spc}${tre}${fk15}\n"
-   printf "\e[$((toph+27));${dist}H${fk0}${cps}${fk0}${fk9}${fk0}${fk10}\e[$((toph+31));${dist}H${spc}${two}${fk2}${fk5}${fk5} ${fk2}\n"
+   str5="${ten}${ten}"
+   str4="${mcol}[]${end}"
+   str0="${colbon}[]${end}"
+   str1="${colbon}${block}${end}"
+   str6="${mcol}[]${block}${end}"
+   str2="${colbon}[]${block}${end}"
+   str3="${colbon}${block}${block}${end}"
+   str="${cube}${str0}${two}${str3}${two}${str3}"
+   str7="${str1}${one}${str1}${str}${str4}${two}${two}"
+   str8="${str0}${one}${equ}row${one}${str0}${cube}${str0}${two}${str0}${one}${equ}(x-m)*zoomx${two}"
+   str9="${one}${equ}=${one}${str0}${two}${str0}${ten}${cube}${one}${str0}${cube}${equ}*${two}"
+   str10="${ten}${five}${two}${str0}${two}${str0}${one}${equ}+${one}${str0}${five}${str0}"
+   str11="${cube}${one}${str0}${two}${equ}cos(a)${one}${equ}sin(a)${two}${str0}${two}${str0}${cube}${str0}${two}${equ}m${two}${str0}"
+   str12="${one}${equ}col${one}${str0}${cube}${str0}${two}${str0}${one}${equ}(y-n)*zoomy${two}${str0}${five}${one}"
+   str13="${one}${equ}-sin(a)${one}${equ}cos(a)${two}${str0}${two}${str0}${cube}${str0}${two}${equ}n${two}${str0}"
+   str14="${str1}${one}${str1}${str}${five}${one}"
+   str15="${str1}${two}${str0}${cube}${str1}${one}${str1}"
+   printf "\e[$((toph+23));${dist}H${colbon}Algorithm:${two}${str2}${one}${str5}${str5}${str2}${str4}\n"
+   printf "\e[$((toph+30));${dist}H${ten}${two}${str0}${two}${two}${five}${str5}${str5}${str0}\n"
+   printf "\e[$((toph+25));${dist}H${str7}${str1}${ten}${cube}${str1}${two}${str0}${cube}${str1}${one}${str1}\n"
+   printf "\e[$((toph+26));${dist}H${str8}${str0}${str4}${str11}\e[$((toph+28));${dist}H${str0}${str12}${str0}${str13}\n"
+   printf "\e[$((toph+24));${dist}H${two}${ten}${str0}${ten}${cube}${two}${cube}${str6}${str5}${five}${str0}${str4}\n"
+   printf "\e[$((toph+22));${dist}H${cube}${str5}${str5}${str5}${str6}\e[$((toph+29));${dist}H${str14}${str1}${ten}${cube}${str15}\n"
+   printf "\e[$((toph+27));${dist}H${str0}${five}${str0}${str9}${str0}${str10}\e[$((toph+31));${dist}H${ten}${two}${str2}${str5}${str5} ${str2}\n"
 }
 
 show.board()
@@ -606,14 +605,14 @@ show.notify()
    printf "\e[$((toph+15));${dist}HR|r      ===   resume         A|a|left     ===   one step left\n"
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
-   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.3\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 03/13/2013]\n"
+   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.4\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 04/09/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]  [width] [height]"
                  echo "Range: [ 0 =< runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]   [ width >= 17 ]   [ height>= 10 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.0.3 [Updated 03/13/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.0.4 [Updated 04/09/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
                  show.board; show.notify
                  show.piece 0; draw.piece 0

@@ -4,10 +4,11 @@
 ############################################################################################
 #                                                                                          #
 #   License: Boost Ver 1.0+                                                                #
+#   Project: https://github.com/yongye/go                                                  #
 #   Project: https://github.com/yongye/cpp                                                 #
 #   Project: https://github.com/yongye/shell                                               #
 #   Author : YongYe <complex.invoke@gmail.com>                                             #
-#   Version: 7.0.5 11/01/2011 BeiJing China [Updated 05/12/2013]                           #
+#   Version: 7.0.7 11/01/2011 BeiJing China [Updated 06/08/2013]                           #
 #                                                                                          #
 #                                                                         [][][]           #
 #   Algorithm:  [][][]                                                [][][][]             #
@@ -283,7 +284,7 @@ get.ctime()
    ((j=width-9))
    for((k=0; k!=j; ++k)) { line+=-; }
    color="\e[1;33m"
-   printf "\e[2;6H${color}${line}[\e[2;$((23+j))H${color}]${line}\e[0m\n"
+   printf "\e[2;6H${color}${line}[Time \e[2;$((23+j))H${color}]${line}\e[0m\n"
    while :; do
          sleep 1 &
          get.stime s 60 m
@@ -292,7 +293,7 @@ get.ctime()
          for i in ${d} ${h} ${m} ${s}; do
              (( ${#i} != 2 )) && Time[i]="0${i}" || Time[i]="${i}"
          done    
-         printf "\e[2;$((7+j))H${color}Time ${Time[d]}:${Time[h]}:${Time[m]}:${Time[s]}\e[0m\n"
+         printf "\e[2;$((12+j))H${color}${Time[d]}:${Time[h]}:${Time[m]}:${Time[s]}\e[0m\n"
          wait; ((++s))
    done
 }
@@ -600,14 +601,14 @@ show.notify()
    printf "\e[$((toph+15));${dist}HR|r      ===   resume         A|a|left     ===   one step left\n"
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
-   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.5\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 05/12/2013]\n"
+   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.7\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 06/08/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]  [width] [height]"
                  echo "Range: [ 0 <= runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]   [ width >= 17 ]   [ height >= 10 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.0.5 [Updated 05/12/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.0.7 [Updated 06/08/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
                  show.board; show.notify
                  show.piece 0; draw.piece 0

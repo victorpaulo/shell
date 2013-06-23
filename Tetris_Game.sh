@@ -8,7 +8,7 @@
 #   Project: https://github.com/yongye/cpp                              #
 #   Project: https://github.com/yongye/shell                            #
 #   Author : YongYe <complex.invoke@gmail.com>                          #
-#   Version: 7.0.7 11/01/2011 BeiJing China [Updated 06/21/2013]        #
+#   Version: 7.0.8 11/01/2011 BeiJing China [Updated 06/24/2013]        #
 #                                                                       # 
 #   Algorithm:                                                          #
 #                                                                       #
@@ -87,10 +87,11 @@ run.leave(){ (( ! ${#} )) && printf "${gmover}" || { (( ${#}%2 )) && sig.trans 2
 
 max.vertical.coordinate()
 {
-   local i col row
+   local i col row val
    for((i=0; i!=${#box[@]}; i+=2)); do
-      (( col[box[i+1]] < box[i] )) && ((col[box[i+1]]=box[i]))
-         row[box[i+1]]="${col[box[i+1]]} ${box[i+1]}"
+        ((val=box[i+1]))
+        (( col[val] < box[i] )) && ((col[val]=box[i]))
+           row[val]="${col[val]} ${val}"
    done
    max=(${row[@]})
 }
@@ -269,7 +270,7 @@ del.row()
    done
    line=0
    ini.loop get.check map.piece
-   (( ! line )) && return
+   (( ! line )) && return 1
    ((num=line*200-100))
    printf "\e[1;34m\e[$((toph+10));$((dist+49))H$((scorelevel+=num))\e[0m\n"
    if (( scorelevel%5000 < num && speedlevel < 30 )); then
@@ -478,16 +479,15 @@ per.multiple()
 
 run.unique()
 {
-   local i mid first_coordinate
+   local i col mid row
    declare -A mid
    for((i=0; i!=${#new_coordinate[@]}; i+=2))
    {
-        if (( ! mid[${new_coordinate[i]}::${new_coordinate[i+1]}]++ )); then
-             ((first_coordinate[${#first_coordinate[@]}]=new_coordinate[i]))
-             ((first_coordinate[${#first_coordinate[@]}]=new_coordinate[i+1]))
-        fi
+        ((row=new_coordinate[i]))
+        ((col=new_coordinate[i+1]))
+        mid[${row}::${col}]="${row} ${col}"
    }
-   new_coordinate=(${first_coordinate[@]})
+   new_coordinate=(${mid[@]})
 }
 
 coordinate.transformation()
@@ -603,14 +603,14 @@ show.notify()
    printf "\e[$((toph+15));${dist}HR|r      ===   resume         A|a|left     ===   one step left\n"
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
-   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.7\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 06/21/2013]\n"
+   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.8\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 06/24/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]  [width] [height]"
                  echo "Range: [ 0 <= runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]   [ width >= 17 ]   [ height >= 10 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.0.7 [Updated 06/21/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.0.8 [Updated 06/24/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
                  show.board; show.notify
                  show.piece 0; draw.piece 0

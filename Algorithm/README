@@ -1,4 +1,5 @@
 Three ways to design the Algorithms for the function coordinate.transformation()
+which is intended to enlarge, shrink, rotate and matrix transpose the pieces
 
 coordinate.transformation()
 {

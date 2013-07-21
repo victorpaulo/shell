@@ -8,7 +8,7 @@
 #   Project: https://github.com/yongye/cpp                              #
 #   Project: https://github.com/yongye/shell                            #
 #   Author : YongYe <complex.invoke@gmail.com>                          #
-#   Version: 7.0.9 11/01/2011 BeiJing China [Updated 07/02/2013]        #
+#   Version: 7.1.0 11/01/2011 BeiJing China [Updated 07/21/2013]        #
 #                                                                       # 
 #   Algorithm:                                                          #
 #                                                                       #
@@ -78,7 +78,6 @@ get.erase(){ printf "${old_shadow//${unit}/  }\e[0m\n"; }
 get.resum(){ stty ${oldtty}; printf "\e[?25h\e[36;4H\n"; }
 get.check(){ (( ! box_map$((i-modw))[j/2-toph] )) && k=1; }
 get.stime(){ (( ${1} == ${2} )) && { ((++${3})); ((${1}=0)); }; }
-get.point(){ ((${1}=mid[${#mid[@]}/2])); ((${2}=mid[${#mid[@]}/2${3}1])); }
 cmp.coord(){ (( ${1} <= ${2} )) && { ((${5})); (( ${3} < ${4} )) && ((${6})); }; }
 run.prbox(){ old_shadow="${cur_shadow}"; printf "\e[${cur_color}${cur_shadow}\e[0m\n"; }
 run.initi(){ eval box_map$((i-modw))[j/2-toph]=0; eval box_color$((i-modw))[j/2-toph]=""; }
@@ -461,9 +460,12 @@ get.move()
 
 mid.point()
 {
-   local mid
+   local len mid mod
    mid=(${!1})
-   (( ${#mid[@]}%4 )) && get.point ${3} ${2} - || get.point ${2} ${3} +
+   ((len=${#mid[@]}/2))
+   ((mod=${#mid[@]}%4))
+   ((${2}=mid[len-mod/2]))
+   ((${3}=mid[len-mod/2+1]))
 }
 
 per.multiple()
@@ -603,14 +605,14 @@ show.notify()
    printf "\e[$((toph+15));${dist}HR|r      ===   resume         A|a|left     ===   one step left\n"
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
-   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.0.9\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 07/02/2013]\n"
+   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.1.0\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 07/21/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]  [width] [height]"
                  echo "Range: [ 0 <= runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]   [ width >= 17 ]   [ height >= 10 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.0.9 [Updated 07/02/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.1.0 [Updated 07/21/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
                  show.board; show.notify
                  show.piece 0; draw.piece 0

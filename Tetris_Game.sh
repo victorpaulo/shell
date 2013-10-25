@@ -8,7 +8,7 @@
 #   Project: https://github.com/yongye/cpp                              #
 #   Project: https://github.com/yongye/shell                            #
 #   Author : YongYe <complex.invoke@gmail.com>                          #
-#   Version: 7.1.1 11/01/2011 BeiJing China [Updated 09/14/2013]        #
+#   Version: 7.1.2 11/01/2011 BeiJing China [Updated 10/25/2013]        #
 #                                                                       # 
 #   Algorithm:                                                          #
 #                                                                       #
@@ -460,12 +460,11 @@ get.move()
 
 mid.point()
 {
-   local len mid mod
+   local len mid
    mid=(${!1})
-   ((len=${#mid[@]}/2))
-   ((mod=${#mid[@]}%4))
-   ((${2}=mid[len-mod/2]))
-   ((${3}=mid[len-mod/2+1]))
+   ((len=${#mid[@]}/2-(${#mid[@]}%4)/2))
+   ((${2}=mid[len]))
+   ((${3}=mid[len+1]))
 }
 
 per.multiple()
@@ -605,14 +604,14 @@ show.notify()
    printf "\e[$((toph+15));${dist}HR|r      ===   resume         A|a|left     ===   one step left\n"
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
-   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.1.1\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 09/14/2013]\n"
+   printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.1.2\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 10/25/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]  [width] [height]"
                  echo "Range: [ 0 <= runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]   [ width >= 17 ]   [ height >= 10 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.1.1 [Updated 09/14/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.1.2 [Updated 10/25/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
                  show.board; show.notify
                  show.piece 0; draw.piece 0

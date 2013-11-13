@@ -86,7 +86,7 @@ run.leave(){ (( ! ${#} )) && printf "${gmover}" || { (( ${#}%2 )) && sig.trans 2
 
 max.vertical.coordinate()
 {
-   local i j p q col len row
+   local i j k p q col len
    for ((i=0; i!=${#box[@]}; i+=2))
    {   
          ((q=box[i]))
@@ -94,18 +94,20 @@ max.vertical.coordinate()
          for ((j=0; j!=len; ++j)); do 
                (( col[j] == p )) && break
          done 
+         ((k=2*j))
          if (( j == len )); then
                ((++len))
-               ((col[j]=p))
-               ((row[j]=q))
+               ((col[k]=p))
+               ((col[k+1]=q))
          fi
-         (( row[j] < q )) && ((row[j]=q))
-         ((col[j]=p))
+         (( col[k+1] < q )) && ((col[k+1]=q))
+         ((col[k]=p))
    }
    for ((i=0; i!=len; ++i))
    {
-         ((max[2*i]=row[i]))
-         ((max[2*i+1]=col[i]))
+         ((k=2*i))
+         ((max[k]=col[k+1]))
+         ((max[k+1]=col[k]))
    }
 }
 

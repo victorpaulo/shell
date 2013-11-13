@@ -95,9 +95,9 @@ max.vertical.coordinate()
                (( col[j] == p )) && break
          done 
          if (( j == len )); then
+               ((++len))
                ((col[j]=p))
                ((row[j]=q))
-               ((++len))
          fi
          (( row[j] < q )) && ((row[j]=q))
          ((col[j]=p))
@@ -494,26 +494,22 @@ per.multiple()
 
 run.unique()
 {
-   local i j p q col len row
+   local i j k p q len vec
    for ((i=0; i!=${#new_coordinate[@]}; i+=2))
    {
          ((p=new_coordinate[i]))
          ((q=new_coordinate[i+1]))
          for ((j=0; j!=len; ++j)); do 
-               (( row[j] == p && col[j] == q )) && break
+               ((k=2*j))
+               (( vec[k] == p && vec[k+1] == q )) && break
          done 
          if (( j == len )); then
-               ((row[j]=p))
-               ((col[j]=q))
                ((++len))
+               ((vec[k]=p))
+               ((vec[k+1]=q))
          fi
    }
-   new_coordinate=()
-   for ((i=0; i!=len; ++i))
-   {
-         ((new_coordinate[2*i]=row[i]))
-         ((new_coordinate[2*i+1]=col[i]))
-   }
+   new_coordinate=(${vec[@]})
 }
 
 coordinate.transformation()

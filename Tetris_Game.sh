@@ -99,9 +99,9 @@ max.vertical.coordinate()
                ((++len))
                ((col[k]=p))
                ((col[k+1]=q))
+         else 
+               (( col[j+1] < q )) && ((col[j+1]=q))
          fi
-         (( col[k+1] < q )) && ((col[k+1]=q))
-         ((col[k]=p))
    }
    for ((i=0; i!=len; ++i))
    {

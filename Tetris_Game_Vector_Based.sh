@@ -79,11 +79,11 @@ get.piece(){ box=(${!BOX[RANDOM%runlevel]}); }
 run.initi(){ box_map[index]=0; box_color[index]=""; }
 get.erase(){ printf "${old_shadow//${unit}/  }\e[0m\n"; }
 get.resum(){ stty ${oldtty}; printf "\e[?25h\e[36;4H\n"; }
-get.stime(){ (( ${1} == ${2} )) && { ((++${3})); ((${1}=0)); }; }
 cmp.coord(){ (( ${1} <= ${2} )) && { ((${5})); (( ${3} < ${4} )) && ((${6})); }; }
 run.prbox(){ old_shadow="${cur_shadow}"; printf "\e[${cur_color}${cur_shadow}\e[0m\n"; }
 run.level(){ lhs=${#BOX[@]}; rhs=${1:-$((lhs-1))}; ((runlevel=(rhs < 0 || rhs > lhs-1)?lhs:rhs+1)); }
 run.leave(){ (( ! ${#} )) && printf "${gmover}" || { (( ${#}%2 )) && sig.trans 22; get.resum; }; exit; }
+get.stime(){ (( ${1} == ${2} )) && { ((++${3})); ((${1}=0)); }; Time[${4}]=$((${!1}/10))$((${!1}%10)); }
 
 max.vertical.coordinate()
 {
@@ -287,13 +287,11 @@ get.ctime()
    printf "\e[2;6H${color}${line}[Time \e[2;$((23+j))H${color}]${line}\e[0m\n"
    while :; do
          sleep 1 &
-         get.stime s 60 m
-         get.stime m 60 h
-         get.stime h 24 d
-         for i in ${d} ${h} ${m} ${s}; do
-               Time[i]=$((i/10))$((i%10))
-         done    
-         printf "\e[2;$((12+j))H${color}${Time[d]}:${Time[h]}:${Time[m]}:${Time[s]}\e[0m\n"
+         get.stime s 60 m 0
+         get.stime m 60 h 1
+         get.stime h 24 d 2
+         Time[3]=$((d/10))$((d%10))
+         printf "\e[2;$((12+j))H${color}${Time[3]}:${Time[2]}:${Time[1]}:${Time[0]}\e[0m\n"
          wait; ((++s))
    done
 }

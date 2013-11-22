@@ -9,7 +9,7 @@
 #   Project: https://github.com/yongye/cpp                              #
 #   Project: https://github.com/yongye/shell                            #
 #   Author : YongYe <complex.invoke@gmail.com>                          #
-#   Version: 7.1.3 11/01/2011 BeiJing China [Updated 11/17/2013]        #
+#   Version: 7.1.3 11/01/2011 BeiJing China [Updated 11/22/2013]        #
 #                                                                       # 
 #   Algorithm:                                                          #
 #                                                                       #
@@ -311,7 +311,7 @@ get.ctime()
          get.stime m 60 h
          get.stime h 24 d
          for i in ${d} ${h} ${m} ${s}; do
-               (( ${#i} != 2 )) && Time[i]="0${i}" || Time[i]="${i}"
+               Time[i]=$((i/10))$((i%10))
          done    
          printf "\e[2;$((12+j))H${color}${Time[d]}:${Time[h]}:${Time[m]}:${Time[s]}\e[0m\n"
          wait; ((++s))
@@ -629,13 +629,13 @@ show.notify()
    printf "\e[$((toph+16));${dist}HW|w|up   ===   rotate         D|d|right    ===   one step right\n"
    printf "\e[$((toph+17));${dist}HT|t      ===   transpose      Space|enter  ===   drop all down\n"
    printf "\e[38;5;106;1m\e[$((toph+19));${dist}HTetris Game  Version 7.1.3\n"
-   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 11/17/2013]\n"
+   printf "\e[$((toph+20));${dist}HYongYe <complex.invoke@gmail.com>\e[$((toph+21));${dist}H11/01/2011 BeiJing China [Updated 11/22/2013]\n"
 }
 
    case ${1} in
    -h|--help)    echo "Usage: bash ${0} [runlevel] [previewlevel] [speedlevel]  [width] [height]"
                  echo "Range: [ 0 <= runlevel <= $((${#BOX[@]}-1)) ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]   [ width >= 17 ]   [ height >= 10 ]" ;;
-   -v|--version) echo "Tetris Game  Version 7.1.3 [Updated 11/17/2013]" ;;
+   -v|--version) echo "Tetris Game  Version 7.1.3 [Updated 11/22/2013]" ;;
    ${PPID})      run.level ${2}; ini.loop run.initi 
                  show.board; show.notify
                  show.piece 0; draw.piece 0

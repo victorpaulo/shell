@@ -25,5 +25,5 @@ height                      :  Height of the game area              ( Default va
 Usage                       :  bash program [runlevel] [previewlevel] [speedlevel] [width] [height]
 Range                       :  [ 0 <= runlevel <= 31 ]   [ previewlevel >= 1 ]   [ speedlevel <= 30 ]   [ width >= 17 ]   [ height >= 10 ]
 Notice                      :  runlevel previewlevel speedlevel width height belong to integer
-Platform                    :  redhat-based distros(CentOS/rhel/Fedora)
+Platform                    :  redhat-based distros(CentOS|rhel|Fedora)
 Version                     :  Bash Shell must be 4.0 or above

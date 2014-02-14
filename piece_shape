@@ -42,8 +42,8 @@ view.piece.shape()
 {
    locus=(${!1})
    len=${#locus[@]}
-   for((i=0; i!=len; i+=2)); do
-        cur_shadow+="\e[${locus[i]};${locus[i+1]}H${unit}"
+   for  ((i=0; i!=len; i+=2)); do
+          cur_shadow+="\e[${locus[i]};${locus[i+1]}H${unit}"
    done
    (( len )) && printf "\e[1;33;40m${cur_shadow}\e[0m\e[26;26H\e[0m\n"
 }
